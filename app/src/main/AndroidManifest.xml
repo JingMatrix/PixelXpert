@@ -38,7 +38,8 @@
 			android:targetActivity=".ui.activities.FakeSplashActivity">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
+				<category android:name="android.intent.category.INFO" />
+				<category android:name="de.robv.android.xposed.category.MODULE_SETTINGS" />
 				<action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
 			</intent-filter>
 		</activity-alias>
@@ -51,7 +52,8 @@
 			android:targetActivity=".ui.activities.FakeSplashActivity">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
+				<category android:name="android.intent.category.INFO" />
+				<category android:name="de.robv.android.xposed.category.MODULE_SETTINGS" />
 				<action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
 			</intent-filter>
 		</activity-alias>
