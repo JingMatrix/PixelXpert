@@ -49,10 +49,17 @@ public class PXSettingsLauncher extends XposedModPack {
 	public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpParam) throws Throwable {
 		ReflectedClass HomepagePreferenceClass = ReflectedClass.of("com.android.settings.widget.HomepagePreference");
 		ReflectedClass TopLevelSettingsClass = ReflectedClass.of("com.android.settings.homepage.TopLevelSettings");
+		ReflectedClass TopLevelStoragePreferenceController = ReflectedClass.of("com.android.settings.deviceinfo.TopLevelStoragePreferenceController");
 		ReflectedClass OnPreferenceClickListenerInterface = ReflectedClass.of("androidx.preference.Preference$OnPreferenceClickListener");
 
 		ReflectedClass PreferenceCategoryClass = ReflectedClass.ofIfPossible("androidx.preference.PreferenceCategory");
 		ReflectedClass PreferenceManagerClass = ReflectedClass.ofIfPossible("androidx.preference.PreferenceManager");
+
+		TopLevelStoragePreferenceController
+				.before("getSummary")
+				.run(param -> {
+					param.setResult("Android 16 Beta 3 bug workaround");
+				});
 
 		TopLevelSettingsClass
 				.after("getPreferenceScreenResId")
