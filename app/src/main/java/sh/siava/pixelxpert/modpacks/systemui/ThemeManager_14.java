@@ -2,6 +2,7 @@ package sh.siava.pixelxpert.modpacks.systemui;
 
 import static android.graphics.Color.BLACK;
 import static android.graphics.Color.WHITE;
+import static de.robv.android.xposed.XposedBridge.log;
 import static de.robv.android.xposed.XposedHelpers.callMethod;
 import static de.robv.android.xposed.XposedHelpers.getIntField;
 import static de.robv.android.xposed.XposedHelpers.getObjectField;
@@ -19,6 +20,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.DrawableWrapper;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +38,7 @@ import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
+import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import sh.siava.pixelxpert.modpacks.Constants;
 import sh.siava.pixelxpert.modpacks.XPLauncher;
@@ -44,6 +47,7 @@ import sh.siava.pixelxpert.modpacks.utils.SystemUtils;
 import sh.siava.pixelxpert.modpacks.utils.toolkit.ReflectedClass;
 import sh.siava.pixelxpert.modpacks.utils.toolkit.ReflectedClass.ReflectionConsumer;
 import sh.siava.pixelxpert.modpacks.utils.toolkit.ReflectedMethod;
+import sh.siava.pixelxpert.modpacks.utils.toolkit.ReflectionTools;
 
 @SuppressWarnings("RedundantThrows")
 public class ThemeManager_14 extends XposedModPack {
@@ -187,10 +191,24 @@ public class ThemeManager_14 extends XposedModPack {
 			ReflectedClass ExpandableControllerImplClass = ReflectedClass.of("com.android.compose.animation.ExpandableControllerImpl");
 
 
+			log("hook size " + ReflectionTools.hookAllConstructors(FooterActionsButtonViewModelClass.getClazz(), new XC_MethodHook() {
+				@Override
+				protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+					Resources res = mContext.getResources();
+					if (getIntField(param.thisObject, "id") == res.getIdentifier("pm_lite", "id", mContext.getPackageName())) {
+						setObjectField(param.thisObject, "backgroundColor", PM_LITE_BACKGROUND_CODE);
+						setObjectField(param.thisObject, "iconTint", colorInactive);
+					}
+				}
+			}).size());
+
+			log("FooterActionsButtonViewModelClass hooked");
 			FooterActionsButtonViewModelClass
 					.afterConstruction()
 					.run(param -> { //A16 power button
+						log("FooterActionsButtonViewModelClass called");
 						Resources res = mContext.getResources();
+						log(getIntField(param.thisObject, "id") + " compared to " + res.getIdentifier("pm_lite", "id", mContext.getPackageName()));
 						if(getIntField(param.thisObject, "id") == res.getIdentifier("pm_lite", "id", mContext.getPackageName()))
 						{
 							setObjectField(param.thisObject, "backgroundColor", PM_LITE_BACKGROUND_CODE);
@@ -248,11 +266,10 @@ public class ThemeManager_14 extends XposedModPack {
 
 						//power button
 						Object power = getObjectField(param.thisObject, "power");
-						try { //A15 and lower. On 16 we directly set things on
+						if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
 							setObjectField(power, "iconTint", colorInactive);
 							setObjectField(power, "backgroundColor", PM_LITE_BACKGROUND_CODE);
 						}
-						catch (Throwable ignored){}
 
 						//settings button
 						setObjectField(
@@ -268,6 +285,7 @@ public class ThemeManager_14 extends XposedModPack {
 						setObjectField(param.thisObject, "backgroundAlpha", ReadonlyStateFlowClass.getClazz().getConstructors()[0].newInstance(zeroAlphaFlow));
 					});
 		} catch (Throwable ignored) {
+			log(ignored);
 		}
 
 		try { //A14 ap11 onwards - modern implementation of mobile icons
